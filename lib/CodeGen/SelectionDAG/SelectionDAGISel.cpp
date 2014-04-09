@@ -2346,6 +2346,7 @@ struct MatchScope {
 
 }
 
+// 在各种target的inc中被用到
 SDNode *SelectionDAGISel::
 SelectCodeCommon(SDNode *NodeToMatch, const unsigned char *MatcherTable,
                  unsigned TableSize) {

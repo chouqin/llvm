@@ -172,6 +172,7 @@ int main(int argc, char **argv) {
   llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
 
   // Initialize targets first, so that --version shows registered targets.
+  // 调用所有的注册方法
   InitializeAllTargets();
   InitializeAllTargetMCs();
   InitializeAllAsmPrinters();
@@ -363,6 +364,7 @@ static int compileModule(char **argv, LLVMContext &Context) {
     }
 
     // Ask the target to add backend passes as necessary.
+	// Target.addPassesToEmitFile由LLVMTargetMachine实现。
     if (Target.addPassesToEmitFile(PM, FOS, FileType, NoVerify,
                                    StartAfterID, StopAfterID)) {
       errs() << argv[0] << ": target does not support generation of this"

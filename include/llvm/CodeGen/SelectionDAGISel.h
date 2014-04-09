@@ -77,6 +77,7 @@ public:
   virtual void PostprocessISelDAG() {}
 
   /// Select - Main hook targets implement to select a node.
+  /// дк
   virtual SDNode *Select(SDNode *N) = 0;
 
   /// SelectInlineAsmMemoryOperand - Select the specified address as a target

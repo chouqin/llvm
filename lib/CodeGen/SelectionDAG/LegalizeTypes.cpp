@@ -40,19 +40,21 @@ void DAGTypeLegalizer::PerformExpensiveChecks() {
 
   // Note that it is possible to have nodes marked NewNode in the DAG.  This can
   // occur in two ways.  Firstly, a node may be created during legalization but
-  // never passed to the legalization core.  This is usually due to the implicit
+  // never passed to the legalization core（什么是legalization core）.  
+  // This is usually due to the implicit
   // folding that occurs when using the DAG.getNode operators.  Secondly, a new
   // node may be passed to the legalization core, but when analyzed may morph
   // into a different node, leaving the original node as a NewNode in the DAG.
   // A node may morph if one of its operands changes during analysis.  Whether
   // it actually morphs or not depends on whether, after updating its operands,
-  // it is equivalent to an existing node: if so, it morphs into that existing
+  // it is equivalent to an existing node（什么叫equivalent?）: if so, it morphs into that existing
   // node (CSE).  An operand can change during analysis if the operand is a new
   // node that morphs, or it is a processed value that was mapped to some other
   // value (as recorded in ReplacedValues) in which case the operand is turned
   // into that other value.  If a node morphs then the node it morphed into will
   // be used instead of it for legalization, however the original node continues
   // to live on in the DAG.
+
   // The conclusion is that though there may be nodes marked NewNode in the DAG,
   // all uses of such nodes are also marked NewNode: the result is a fungus of
   // NewNodes growing on top of the useful nodes, and perhaps using them, but
@@ -61,7 +63,7 @@ void DAGTypeLegalizer::PerformExpensiveChecks() {
   // If a value is mapped by ReplacedValues, then it must have no uses, except
   // by nodes marked NewNode (see above).
 
-  // The final node obtained by mapping by ReplacedValues is not marked NewNode.
+  // The final node obtained by mapping by ReplacedValues(这个final node是什么获得的，没怎么看明白，不停地获取替代节点) is not marked NewNode.
   // Note that ReplacedValues should be applied iteratively.
 
   // Note that the ReplacedValues map may also map deleted nodes (by iterating
@@ -229,6 +231,7 @@ bool DAGTypeLegalizer::run() {
       // with a legal type).  Results can be remapped using ReplaceValueWith,
       // or their promoted/expanded/etc values registered in PromotedIntegers,
       // ExpandedIntegers etc.
+	  // 正因为考虑到了所有的result，可以直接goto了
       case TargetLowering::TypePromoteInteger:
         PromoteIntegerResult(N, i);
         Changed = true;
@@ -263,6 +266,7 @@ bool DAGTypeLegalizer::run() {
 ScanOperands:
     // Scan the operand list for the node, handling any nodes with operands that
     // are illegal.
+	// 为什么还需要这一步呢，一个节点被添加到worklist之后应该它的operand都已经合法了啊
     {
     unsigned NumOperands = N->getNumOperands();
     bool NeedsReanalyzing = false;
@@ -538,6 +542,8 @@ void DAGTypeLegalizer::AnalyzeNewValue(SDValue &Val) {
 /// either source or target to ReplacedValues (which typically means calling
 /// Expunge when a new node is first seen, since it may no longer be marked
 /// NewNode by the time it is added to ReplacedValues).
+
+/// 先不纠结具体的细节了，只需要知道这个函数应该在创建新Node，和把Node添加到ReplacedValues之前被调用就行了
 void DAGTypeLegalizer::ExpungeNode(SDNode *N) {
   if (N->getNodeId() != NewNode)
     return;
@@ -608,6 +614,7 @@ void DAGTypeLegalizer::ExpungeNode(SDNode *N) {
 
 /// RemapValue - If the specified value was already legalized to another value,
 /// replace it by that value.
+/// 这个函数在干嘛，好像也不是很清楚，但是被调用了很多次
 void DAGTypeLegalizer::RemapValue(SDValue &N) {
   DenseMap<SDValue, SDValue>::iterator I = ReplacedValues.find(N);
   if (I != ReplacedValues.end()) {
@@ -651,6 +658,7 @@ namespace {
       // only gained new uses.  However N -> E was just added to ReplacedValues,
       // and the result of a ReplacedValues mapping is not allowed to be marked
       // NewNode.  So if E is marked NewNode, then it needs to be analyzed.
+	  // 什么叫做"ReplacedValues"的"result"?
       if (E->getNodeId() == DAGTypeLegalizer::NewNode)
         NodesToAnalyze.insert(E);
     }
@@ -662,6 +670,9 @@ namespace {
       assert(N->getNodeId() != DAGTypeLegalizer::ReadyToProcess &&
              N->getNodeId() != DAGTypeLegalizer::Processed &&
              "Invalid node ID for RAUW deletion!");
+
+	  // 为什么要设成NewNode?
+	  // 这个函数什么时候被调用？
       N->setNodeId(DAGTypeLegalizer::NewNode);
       NodesToAnalyze.insert(N);
     }
@@ -728,6 +739,10 @@ void DAGTypeLegalizer::ReplaceValueWith(SDValue From, SDValue To) {
     // From with To.
   } while (!From.use_empty());
 }
+
+//===----------------------------------------------------------------------===//
+// 往各个map里的注册和获取map中的值的函数
+//===----------------------------------------------------------------------===//
 
 void DAGTypeLegalizer::SetPromotedInteger(SDValue Op, SDValue Result) {
   assert(Result.getValueType() ==
@@ -865,6 +880,8 @@ void DAGTypeLegalizer::SetWidenedVector(SDValue Op, SDValue Result) {
 //===----------------------------------------------------------------------===//
 
 /// BitConvertToInteger - Convert to an integer of the same size.
+/// 根据一个SDValue，创建一个新的节点，只有一个input和output，
+/// input是这个SDValue
 SDValue DAGTypeLegalizer::BitConvertToInteger(SDValue Op) {
   unsigned BitWidth = Op.getValueType().getSizeInBits();
   return DAG.getNode(ISD::BITCAST, SDLoc(Op),

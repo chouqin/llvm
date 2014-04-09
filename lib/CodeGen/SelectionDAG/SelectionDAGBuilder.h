@@ -512,6 +512,7 @@ public:
 
   /// FuncInfo - Information about the function as a whole.
   ///
+  /// 原始的函数的信息
   FunctionLoweringInfo &FuncInfo;
 
   /// OptLevel - What optimization level we're generating code for.

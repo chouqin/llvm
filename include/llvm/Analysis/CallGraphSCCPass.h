@@ -16,6 +16,8 @@
 // These passes are inherently interprocedural, and are required to keep the
 // call graph up-to-date if they do anything which could modify it.
 //
+// SCC: Strongly Connected Component
+//
 //===----------------------------------------------------------------------===//
 
 #ifndef LLVM_ANALYSIS_CALLGRAPHSCCPASS_H

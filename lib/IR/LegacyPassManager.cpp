@@ -1609,6 +1609,7 @@ MPPassManager::runOnModule(Module &M) {
 
     initializeAnalysisImpl(MP);
 
+	// 这样新建一个block有什么好处？
     {
       PassManagerPrettyStackEntry X(MP, M);
       TimeRegion PassTimer(getPassTimer(MP));
@@ -1633,6 +1634,7 @@ MPPassManager::runOnModule(Module &M) {
     Changed |= getContainedPass(Index)->doFinalization(M);
 
   // Finalize on-the-fly passes
+  // on-the-fly passes没有run的过程吗，只有initialize,然后就Finalization了？
   for (std::map<Pass *, FunctionPassManagerImpl *>::iterator
        I = OnTheFlyManagers.begin(), E = OnTheFlyManagers.end();
        I != E; ++I) {
@@ -1699,7 +1701,9 @@ bool PassManagerImpl::run(Module &M) {
 
   dumpArguments();
   dumpPasses();
-
+  
+  // ImmutablePass的initialization和finalization到底起一个什么样的作用？
+  // ImmutablePass没有run的过程？
   SmallVectorImpl<ImmutablePass *>& IPV = getImmutablePasses();
   for (SmallVectorImpl<ImmutablePass *>::const_iterator I = IPV.begin(),
        E = IPV.end(); I != E; ++I) {

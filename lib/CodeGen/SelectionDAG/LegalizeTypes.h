@@ -142,6 +142,7 @@ public:
   SelectionDAG &getDAG() const { return DAG; }
 
 private:
+	// 这几个函数是比较重要的，也是比较难理解的
   SDNode *AnalyzeNewNode(SDNode *N);
   void AnalyzeNewValue(SDValue &Val);
   void ExpungeNode(SDNode *N);

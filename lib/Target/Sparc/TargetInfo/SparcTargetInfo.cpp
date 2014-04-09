@@ -15,6 +15,8 @@ using namespace llvm;
 Target llvm::TheSparcTarget;
 Target llvm::TheSparcV9Target;
 
+// 这些函数什么时候被调用？
+// 声明成extern "C"是因为什么？
 extern "C" void LLVMInitializeSparcTargetInfo() {
   RegisterTarget<Triple::sparc, /*HasJIT=*/ true>
     X(TheSparcTarget, "sparc", "Sparc");

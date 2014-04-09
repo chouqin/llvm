@@ -40,7 +40,9 @@ SparcRegisterInfo::SparcRegisterInfo(SparcSubtarget &st)
 
 const uint16_t* SparcRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF)
                                                                          const {
-  return CSR_SaveList;
+	// CSR_SaveList在SparcGenRegisterInfo.inc中被定义，可是这个文件是自动生成的，
+	// 是根据SparcRegisterInfo.td那个定义生成的？
+	return CSR_SaveList;
 }
 
 const uint32_t*
