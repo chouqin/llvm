@@ -267,6 +267,7 @@ ScanOperands:
     // Scan the operand list for the node, handling any nodes with operands that
     // are illegal.
 	// 为什么还需要这一步呢，一个节点被添加到worklist之后应该它的operand都已经合法了啊
+	// 或许对于有些运算，尽管它的SDValue合法了，但是作为Operand还是不合法
     {
     unsigned NumOperands = N->getNumOperands();
     bool NeedsReanalyzing = false;
