@@ -488,6 +488,9 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
       NewOps.append(N->op_begin(), N->op_begin() + i);
       NewOps.push_back(Op);
     }
+	// 所以得到的NewOps要么是全部的Op(有Operand change),
+	// 要么是空集合（没有Operand change）。
+	// 需要记录的目的在于是new Op，而不是originOp
   }
 
   // Some operands changed - update the node.
@@ -508,6 +511,9 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
       // to remap the operands, since they are the same as the operands we
       // remapped above.
       N = M;
+
+	  // 这一步就相当于AnalysisNewNode了，不需要再对Operand进行处理了
+	  // 重新计算了NodeId，也就是节点的状态
       ExpungeNode(N);
     }
   }
@@ -534,10 +540,13 @@ void DAGTypeLegalizer::AnalyzeNewValue(SDValue &Val) {
 /// the mapping in ReplacedValues applies to the deleted node, not the new
 /// one.
 /// The only map that can have a deleted node as a source is ReplacedValues.
+/// 为什么只有ReplacedValues这个map会有，一个node什么时候被delete？
 /// Other maps can have deleted nodes as targets, but since their looked-up
 /// values are always immediately remapped using RemapValue, resulting in a
 /// not-deleted node, this is harmless as long as ReplacedValues/RemapValue
-/// always performs correct mappings.  In order to keep the mapping correct,
+/// always performs correct mappings. 
+/// Remap是在ReplacedValues中做的吗，看后面的函数，是的
+/// In order to keep the mapping correct,
 /// ExpungeNode should be called on any new nodes *before* adding them as
 /// either source or target to ReplacedValues (which typically means calling
 /// Expunge when a new node is first seen, since it may no longer be marked
@@ -558,6 +567,8 @@ void DAGTypeLegalizer::ExpungeNode(SDNode *N) {
     return;
 
   // Remove N from all maps - this is expensive but rare.
+  // 除了ReplaceValues，其他的map的值怎么可能会被Remap?
+  // 一个节点被delete之后，根据Remap来得到新的值
 
   for (DenseMap<SDValue, SDValue>::iterator I = PromotedIntegers.begin(),
        E = PromotedIntegers.end(); I != E; ++I) {
@@ -608,6 +619,7 @@ void DAGTypeLegalizer::ExpungeNode(SDNode *N) {
        E = ReplacedValues.end(); I != E; ++I)
     RemapValue(I->second);
 
+  // 为什么只需要擦除作为键的，作为值的可以保存吗？
   for (unsigned i = 0, e = N->getNumValues(); i != e; ++i)
     ReplacedValues.erase(SDValue(N, i));
 }
@@ -615,6 +627,8 @@ void DAGTypeLegalizer::ExpungeNode(SDNode *N) {
 /// RemapValue - If the specified value was already legalized to another value,
 /// replace it by that value.
 /// 这个函数在干嘛，好像也不是很清楚，但是被调用了很多次
+
+/// 这个函数的作用1：路径压缩，根据map路径，把SDValue指向final节点
 void DAGTypeLegalizer::RemapValue(SDValue &N) {
   DenseMap<SDValue, SDValue>::iterator I = ReplacedValues.find(N);
   if (I != ReplacedValues.end()) {
@@ -626,6 +640,8 @@ void DAGTypeLegalizer::RemapValue(SDValue &N) {
     // Note that it is possible to have N.getNode()->getNodeId() == NewNode at
     // this point because it is possible for a node to be put in the map before
     // being processed.
+	// 在map中是因为原来的delete的node还在其中吗？
+	// beging processed是指analysisNewNode或者Expunge吗？
   }
 }
 
